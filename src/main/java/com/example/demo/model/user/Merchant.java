@@ -1,6 +1,7 @@
 package com.example.demo.model.user;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "MERCHANT")
 @NoArgsConstructor
+@Builder
 @Data
 public class Merchant {
 

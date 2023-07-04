@@ -1,4 +1,8 @@
 package com.example.demo.model.transactions;
 
-public class ChargeTransaction {
+import java.math.BigDecimal;
+
+public class ChargeTransaction extends Transaction{
+
+    private BigDecimal transferedAmount;
 }

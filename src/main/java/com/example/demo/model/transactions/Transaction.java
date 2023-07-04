@@ -1,5 +1,6 @@
 package com.example.demo.model.transactions;
 
+import com.example.demo.model.user.Merchant;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,6 @@ public class Transaction {
     private Long referenceId;
 
     public enum TransactionStatus {
-        APPROVED, REVERSED, REFUNDED, ERROR;
+        AUTHORIZE, REVERSE, REFUNDED, ERROR;
     }
 }
