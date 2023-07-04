@@ -1,0 +1,20 @@
+server:
+  port : 8081
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            clientId: 8a77def099f7b419bc82
+            clientSecret: 22994818b9d4f8dff11f7d77fc63338cf1dea2b0
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+  datasource:
+    username: root
+    password: root
+
+
