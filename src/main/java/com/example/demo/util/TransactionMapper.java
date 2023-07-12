@@ -2,7 +2,6 @@ package com.example.demo.util;
 
 import com.example.demo.model.transactions.Transaction;
 import com.example.demo.model.transactions.dto.RequestTransactionDto;
-import com.example.demo.model.transactions.dto.RevereseTransactionDto;
 import com.example.demo.model.transactions.dto.TransactionDto;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;

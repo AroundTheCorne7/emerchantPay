@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "TRANSACTION")
@@ -31,7 +31,7 @@ public class Transaction {
     @Column(name = "reference_uuid")
     private String referenceUuid;
     @Column(name = "date_created")
-    private LocalDate dateCreated;
+    private LocalTime dateCreated;
     @Column(name = "transaction_type", nullable = false)
     private TransactionTypeEnum transactionStatus;
     @Column(name = "parent")

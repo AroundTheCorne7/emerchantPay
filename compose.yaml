@@ -5,8 +5,7 @@ services:
     environment:
       MYSQL_DATABASE: "emerchantPay"
       MYSQL_USER: root
-      MYSQL_PASSWORD: root
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ALLOW_EMPTY_PASSWORD: true
     ports:
       - 3306
 
