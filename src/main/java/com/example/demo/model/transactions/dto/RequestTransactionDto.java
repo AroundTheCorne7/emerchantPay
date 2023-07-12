@@ -13,5 +13,7 @@ public class RequestTransactionDto {
     private BigDecimal amount;
     private String customerEmail;
     private String customerPhone;
-    private Merchant merchant;
+    private String referenceUuid;
+    private BigDecimal customerAmount;
+
 }

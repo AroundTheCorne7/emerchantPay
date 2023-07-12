@@ -1,11 +1,14 @@
 package com.example.demo.model.transactions;
 
-import com.example.demo.model.user.Merchant;
+import com.example.demo.model.transactions.enums.TransactionStatusEnum;
+import com.example.demo.model.transactions.enums.TransactionTypeEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "TRANSACTION")
 @NoArgsConstructor
@@ -20,15 +23,18 @@ public class Transaction {
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
     @Column(name = "status", nullable = false)
-    private TransactionStatus status;
+    private TransactionStatusEnum status;
     @Column(name = "customer_email", nullable = false)
     private String customerEmail;
     @Column(name = "customer_phone", nullable = false)
     private String customerPhone;
-    @Column(name = "reference_id")
-    private Long referenceId;
+    @Column(name = "reference_uuid")
+    private String referenceUuid;
+    @Column(name = "date_created")
+    private LocalDate dateCreated;
+    @Column(name = "transaction_type", nullable = false)
+    private TransactionTypeEnum transactionStatus;
+    @Column(name = "parent")
+    private String parentTransaction;
 
-    public enum TransactionStatus {
-        AUTHORIZE, REVERSE, REFUNDED, ERROR;
-    }
 }
