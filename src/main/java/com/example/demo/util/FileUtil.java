@@ -20,6 +20,8 @@ public class FileUtil {
 
     public static String TYPE = "text/csv";
 
+    static String[] HEADERS = {"name", "description", "email"};
+
     public static boolean hasCSVFormat(MultipartFile file) {
 
         return TYPE.equals(file.getContentType());

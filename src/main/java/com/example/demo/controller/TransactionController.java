@@ -11,13 +11,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController("/transaction")
+@RestController
+@RequestMapping("/transaction")
 public class TransactionController {
 
     @Autowired
     private TransactionService service;
 
-    @GetMapping("/get-all/{referenceUuid}")
+
+    @GetMapping("/get-all/")
     public ResponseEntity<List<TransactionDto>> getAllByMerchant(@RequestParam String referenceUuid) {
         return new ResponseEntity(service.getAllByMerchant(referenceUuid), HttpStatus.OK);
     }

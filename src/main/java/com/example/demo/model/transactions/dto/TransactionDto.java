@@ -1,6 +1,5 @@
 package com.example.demo.model.transactions.dto;
 
-import com.example.demo.model.transactions.Transaction;
 import com.example.demo.model.transactions.enums.TransactionStatusEnum;
 import com.example.demo.model.transactions.enums.TransactionTypeEnum;
 import lombok.Data;
@@ -9,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @Data
-
+@NoArgsConstructor
 public class TransactionDto {
 
     private String uuid;

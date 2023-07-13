@@ -23,6 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 
+    @Autowired
     private final TransactionMapper mapper;
     @Autowired
     private MerchantRepository merchantRepository;

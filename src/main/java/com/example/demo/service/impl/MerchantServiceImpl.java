@@ -19,11 +19,12 @@ public class MerchantServiceImpl implements MerchantService {
     @Autowired
     private MerchantRepository repository;
 
+    @Autowired
     private MerchantMapper mapper;
 
     @Override
     public List<MerchantDto> findAll() {
-        List<Merchant> merchants = repository.findAll();
+        List<Merchant> merchants = repository.findAllByIsActiveTrue();
         return mapper.convertEntitiesToDtos(merchants);
     }
 
@@ -31,7 +32,6 @@ public class MerchantServiceImpl implements MerchantService {
     public MerchantDto updateMerchant(MerchantDto dto) {
         Merchant merchant = repository.findByReferenceUuid(dto.getReferenceUuid()).orElseThrow(NotFoundException::new);
         if(merchant != null) {
-            merchant.setActive(dto.isActive());
             merchant.setDescription(dto.getDescription());
             merchant.setName(dto.getName());
             merchant.setEmail(dto.getEmail());
@@ -47,5 +47,11 @@ public class MerchantServiceImpl implements MerchantService {
             merchant.setActive(false);
             repository.save(merchant);
         }
+    }
+
+    @Override
+    public MerchantDto findByUuid(String uuid) {
+        Merchant merchant = repository.findByReferenceUuid(uuid).orElseThrow(NotFoundException::new);
+        return mapper.convertEntityToDto(merchant);
     }
 }

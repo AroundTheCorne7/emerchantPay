@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController("/merchant")
+
+@RestController
+@RequestMapping("/merchant")
 public class MerchantController {
 
     @Autowired
@@ -20,10 +22,17 @@ public class MerchantController {
         return new ResponseEntity(service.findAll(), HttpStatus.OK);
     }
 
+    @GetMapping("/{uuid}")
+    public ResponseEntity<MerchantDto> findByUuid(@RequestParam String uuid) {
+        return new ResponseEntity(service.findByUuid(uuid), HttpStatus.OK);
+    }
+
+
     @PostMapping("/update")
     public ResponseEntity<MerchantDto> updateMerchant(@RequestBody MerchantDto dto) {
         return new ResponseEntity(service.updateMerchant(dto), HttpStatus.OK);
     }
+
 
     @PostMapping("/destroy")
     public ResponseEntity<Void> destroyMerchant(@RequestParam String uuid) {
