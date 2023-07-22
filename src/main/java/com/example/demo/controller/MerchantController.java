@@ -11,30 +11,34 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/merchant")
+@RequestMapping("/merchants")
 public class MerchantController {
 
-    @Autowired
-    private MerchantService service;
+    private final MerchantService service;
 
-    @GetMapping("/get-all")
+    @Autowired
+    public MerchantController(MerchantService service) {
+        this.service = service;
+    }
+
+    @GetMapping()
     public ResponseEntity<List<MerchantDto>> findAll() {
-        return new ResponseEntity(service.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(service.findAll(), HttpStatus.OK);
     }
 
     @GetMapping("/{uuid}")
-    public ResponseEntity<MerchantDto> findByUuid(@RequestParam String uuid) {
-        return new ResponseEntity(service.findByUuid(uuid), HttpStatus.OK);
+    public ResponseEntity<MerchantDto> findByUuid(@PathVariable String uuid) {
+        return new ResponseEntity<>(service.findByUuid(uuid), HttpStatus.OK);
     }
 
 
-    @PostMapping("/update")
+    @PutMapping
     public ResponseEntity<MerchantDto> updateMerchant(@RequestBody MerchantDto dto) {
-        return new ResponseEntity(service.updateMerchant(dto), HttpStatus.OK);
+        return new ResponseEntity<>(service.updateMerchant(dto), HttpStatus.OK);
     }
 
 
-    @PostMapping("/destroy")
+    @DeleteMapping
     public ResponseEntity<Void> destroyMerchant(@RequestParam String uuid) {
         service.destroyMerchant(uuid);
         return ResponseEntity.noContent().build();

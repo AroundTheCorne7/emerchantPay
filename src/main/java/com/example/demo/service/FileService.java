@@ -4,7 +4,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface FileService {
 
-    void createMerchantFromFile(MultipartFile file);
+    void createAdminsFromCsv(MultipartFile file);
 
-    void createAdminFromFile(MultipartFile file);
+    void createMerchantsFromCsv(MultipartFile file);
 }

@@ -3,7 +3,6 @@ package com.example.demo.service.impl;
 import com.example.demo.exception.NotFoundException;
 import com.example.demo.model.transactions.Transaction;
 import com.example.demo.model.transactions.dto.RequestTransactionDto;
-import com.example.demo.model.transactions.dto.RevereseTransactionDto;
 import com.example.demo.model.transactions.dto.TransactionDto;
 import com.example.demo.model.transactions.enums.TransactionStatusEnum;
 import com.example.demo.model.transactions.enums.TransactionTypeEnum;
@@ -12,7 +11,6 @@ import com.example.demo.repository.MerchantRepository;
 import com.example.demo.repository.TransactionRepository;
 import com.example.demo.service.TransactionService;
 import com.example.demo.util.TransactionMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,34 +18,32 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 
-    @Autowired
     private final TransactionMapper mapper;
+    private final MerchantRepository merchantRepository;
+    private final TransactionRepository transactionRepository;
+
+
     @Autowired
-    private MerchantRepository merchantRepository;
-    @Autowired
-    private TransactionRepository transactionRepository;
+    public TransactionServiceImpl(TransactionMapper mapper, MerchantRepository merchantRepository, TransactionRepository transactionRepository) {
+        this.mapper = mapper;
+        this.merchantRepository = merchantRepository;
+        this.transactionRepository = transactionRepository;
+    }
 
     @Override
     public TransactionDto createTransaction(RequestTransactionDto dto) {
-        Merchant merchant = merchantRepository.findByReferenceUuid(dto.getReferenceUuid()).orElseThrow(NotFoundException::new);
+        Merchant merchant = merchantRepository.findByReferenceUuid(dto.getReferenceUuid()).orElseThrow(() -> new NotFoundException("Merchant with reference UUID not found: " + dto.getReferenceUuid()));
         if(!merchant.isActive()) {
-            TransactionDto transactionDto = new TransactionDto();
-            transactionDto.setStatus(TransactionStatusEnum.ERROR);
-            transactionDto.setErrorMessage("Merchant not active");
-            return transactionDto;
+            return createTransactionDto(new TransactionDto(), "Merchant not active");
         }
         Transaction transaction = mapper.convertDtoToEntity(dto);
         transaction.setUuid(UUID.randomUUID().toString());
         transaction.setTransactionStatus(TransactionTypeEnum.AUTHORIZE);
         transactionRepository.save(transaction);
         if(dto.getCustomerAmount().intValue() < dto.getAmount().intValue()) {
-            TransactionDto transactionDto = mapper.convertEntityToDto(transaction);
-            transactionDto.setStatus(TransactionStatusEnum.ERROR);
-            transactionDto.setErrorMessage("Insufficient Amount!");
-            return transactionDto;
+            return createTransactionDto(mapper.convertEntityToDto(transaction), "Insufficient Amount!");
         }
         Transaction chargeTransaction = mapper.convertDtoToEntity(dto);
         chargeTransaction.setUuid(UUID.randomUUID().toString());
@@ -61,20 +57,14 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionDto refundTransaction(RevereseTransactionDto dto) {
-        Merchant merchant = merchantRepository.findByReferenceUuid(dto.getReferenceUuid()).orElseThrow(NotFoundException::new);
+    public TransactionDto refundTransaction(RequestTransactionDto dto) {
+        Merchant merchant = merchantRepository.findByReferenceUuid(dto.getReferenceUuid()).orElseThrow(() -> new NotFoundException("Merchant with reference UUID not found: " + dto.getReferenceUuid()));
         Transaction transaction = transactionRepository.findByUuid(dto.getTransactionUUID());
         if (transaction == null) {
-            TransactionDto transactionDto = new TransactionDto();
-            transactionDto.setStatus(TransactionStatusEnum.ERROR);
-            transactionDto.setErrorMessage("Transaction not found");
-            return transactionDto;
+            return createTransactionDto(new TransactionDto(), "Transaction not found");
         }
         if(dto.getAmount().intValue() > transaction.getAmount().intValue()) {
-            TransactionDto transactionDto = new TransactionDto();
-            transactionDto.setStatus(TransactionStatusEnum.ERROR);
-            transactionDto.setErrorMessage("You cant refund higher amount than the transaction value");
-            return transactionDto;
+            return createTransactionDto(new TransactionDto(), "You cant refund higher amount than the transaction value");
         }
         transaction.setTransactionStatus(TransactionTypeEnum.REFUND);
         transaction.setAmount(transaction.getAmount().subtract(dto.getAmount()));
@@ -85,15 +75,12 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionDto reverseTransaction(RevereseTransactionDto dto) {
-        Merchant merchant = merchantRepository.findByReferenceUuid(dto.getReferenceUuid()).orElseThrow(NotFoundException::new);
+    public TransactionDto reverseTransaction(RequestTransactionDto dto) {
+        Merchant merchant = merchantRepository.findByReferenceUuid(dto.getReferenceUuid()).orElseThrow(() -> new NotFoundException("Merchant with reference UUID not found: " + dto.getReferenceUuid()));
         Transaction transaction = transactionRepository.findByUuid(dto.getTransactionUUID());
         Transaction parentTransaction = transactionRepository.findByUuid(dto.getParentUUID());
         if (transaction == null || parentTransaction == null) {
-            TransactionDto transactionDto = new TransactionDto();
-            transactionDto.setStatus(TransactionStatusEnum.ERROR);
-            transactionDto.setErrorMessage("Transaction not found");
-            return transactionDto;
+            return createTransactionDto(new TransactionDto(), "Transaction not found");
         }
         parentTransaction.setStatus(TransactionStatusEnum.REVERSE);
         parentTransaction.setTransactionStatus(TransactionTypeEnum.REVERSAL);
@@ -107,5 +94,11 @@ public class TransactionServiceImpl implements TransactionService {
     public List<TransactionDto> getAllByMerchant(String referenceUuid) {
         List<Transaction> transactions = transactionRepository.findAllByReferenceUuid(referenceUuid);
         return mapper.convertEntitiesToDtos(transactions);
+    }
+
+    private static TransactionDto createTransactionDto(TransactionDto transactionDto, String errorMessage) {
+        transactionDto.setStatus(TransactionStatusEnum.ERROR);
+        transactionDto.setErrorMessage(errorMessage);
+        return transactionDto;
     }
 }

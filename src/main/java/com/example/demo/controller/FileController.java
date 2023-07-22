@@ -16,24 +16,19 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/import")
 public class FileController {
 
+    private final FileService fileService;
+
     @Autowired
-    private FileService fileService;
+    public FileController(FileService service) {
+        this.fileService = service;
+    }
 
     @PostMapping("/merchant")
     private ResponseEntity<Void> importMerchantFromCsv(@RequestParam("file") MultipartFile file) {
         if (FileUtil.hasCSVFormat(file)) {
-            fileService.createMerchantFromFile(file);
-            return new ResponseEntity(HttpStatus.OK);
+            fileService.createMerchantsFromCsv(file);
+            return new ResponseEntity<>(HttpStatus.OK);
         }
-        return new ResponseEntity(HttpStatus.BAD_REQUEST);
-    }
-
-    @PostMapping("/admin")
-    private ResponseEntity<Void> importAdminFromCsv(@RequestParam("file") MultipartFile file) {
-        if (FileUtil.hasCSVFormat(file)) {
-            fileService.createAdminFromFile(file);
-            return new ResponseEntity(HttpStatus.OK);
-        }
-        return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }
