@@ -1,6 +1,8 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.NotFoundException;
+import com.example.demo.model.transactions.RefundTransaction;
+import com.example.demo.model.transactions.ReversalTransaction;
 import com.example.demo.model.transactions.Transaction;
 import com.example.demo.model.transactions.dto.RequestTransactionDto;
 import com.example.demo.model.transactions.dto.TransactionDto;
@@ -32,8 +34,7 @@ public class TransactionServiceImpl implements TransactionService {
         this.transactionRepository = transactionRepository;
     }
 
-    @Override
-    public TransactionDto createTransaction(RequestTransactionDto dto) {
+    private TransactionDto createTransaction(RequestTransactionDto dto) {
         Merchant merchant = merchantRepository.findByReferenceUuid(dto.getReferenceUuid()).orElseThrow(() -> new NotFoundException("Merchant with reference UUID not found: " + dto.getReferenceUuid()));
         if(!merchant.isActive()) {
             return createTransactionDto(new TransactionDto(), "Merchant not active");
@@ -56,12 +57,11 @@ public class TransactionServiceImpl implements TransactionService {
         return mapper.convertEntityToDto(chargeTransaction);
     }
 
-    @Override
-    public TransactionDto refundTransaction(RequestTransactionDto dto) {
+    private TransactionDto refundTransaction(RequestTransactionDto dto) {
         Merchant merchant = merchantRepository.findByReferenceUuid(dto.getReferenceUuid()).orElseThrow(() -> new NotFoundException("Merchant with reference UUID not found: " + dto.getReferenceUuid()));
-        Transaction transaction = transactionRepository.findByUuid(dto.getTransactionUUID());
+        RefundTransaction transaction = (RefundTransaction) transactionRepository.findByUuid(dto.getTransactionUUID());
         if (transaction == null) {
-            return createTransactionDto(new TransactionDto(), "Transaction not found");
+            throw new NotFoundException("Transaction not found");
         }
         if(dto.getAmount().intValue() > transaction.getAmount().intValue()) {
             return createTransactionDto(new TransactionDto(), "You cant refund higher amount than the transaction value");
@@ -74,20 +74,34 @@ public class TransactionServiceImpl implements TransactionService {
         return mapper.convertEntityToDto(transaction);
     }
 
-    @Override
-    public TransactionDto reverseTransaction(RequestTransactionDto dto) {
-        Merchant merchant = merchantRepository.findByReferenceUuid(dto.getReferenceUuid()).orElseThrow(() -> new NotFoundException("Merchant with reference UUID not found: " + dto.getReferenceUuid()));
-        Transaction transaction = transactionRepository.findByUuid(dto.getTransactionUUID());
-        Transaction parentTransaction = transactionRepository.findByUuid(dto.getParentUUID());
-        if (transaction == null || parentTransaction == null) {
-            return createTransactionDto(new TransactionDto(), "Transaction not found");
+    private TransactionDto reverseTransaction(RequestTransactionDto dto) {
+        ReversalTransaction transaction = (ReversalTransaction) transactionRepository.findByUuid(dto.getTransactionUUID());
+        if (transaction == null) {
+            throw new NotFoundException("Transaction not found");
         }
-        parentTransaction.setStatus(TransactionStatusEnum.REVERSE);
-        parentTransaction.setTransactionStatus(TransactionTypeEnum.REVERSAL);
-        merchant.setTotalTransactionSum(merchant.getTotalTransactionSum().subtract(parentTransaction.getAmount()));
+        transaction.setStatus(TransactionStatusEnum.REVERSE);
+        transaction.setTransactionStatus(TransactionTypeEnum.REVERSAL);
+        transaction.setInvalid(true);
         transactionRepository.save(transaction);
-        merchantRepository.save(merchant);
-        return mapper.convertEntityToDto(parentTransaction);
+        return mapper.convertEntityToDto(transaction);
+    }
+
+    @Override
+    public TransactionDto manipulateTransaction(RequestTransactionDto dto) {
+        if(dto.getStatus() == null) {
+            return createTransaction(dto);
+        }
+        switch (dto.getStatus()) {
+            case REVERSE -> {
+                return reverseTransaction(dto);
+            }
+            case REFUNDED -> {
+                return refundTransaction(dto);
+            }
+            default -> {
+                return createTransaction(dto);
+            }
+        }
     }
 
     @Override

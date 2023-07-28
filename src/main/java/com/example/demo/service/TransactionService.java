@@ -7,11 +7,13 @@ import java.util.List;
 
 public interface TransactionService {
 
-    TransactionDto createTransaction(RequestTransactionDto dto);
+//    TransactionDto createTransaction(RequestTransactionDto dto);
+//
+//    TransactionDto refundTransaction(RequestTransactionDto dto);
+//
+//    TransactionDto reverseTransaction(RequestTransactionDto dto);
 
-    TransactionDto refundTransaction(RequestTransactionDto dto);
-
-    TransactionDto reverseTransaction(RequestTransactionDto dto);
+    TransactionDto manipulateTransaction(RequestTransactionDto dto);
 
     List<TransactionDto> getAllByMerchant(String referenceUuid);
 }

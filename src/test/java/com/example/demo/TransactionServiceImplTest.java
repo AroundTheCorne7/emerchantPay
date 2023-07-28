@@ -1,6 +1,8 @@
 package com.example.demo;
 
 import com.example.demo.exception.NotFoundException;
+import com.example.demo.model.transactions.RefundTransaction;
+import com.example.demo.model.transactions.ReversalTransaction;
 import com.example.demo.model.transactions.Transaction;
 import com.example.demo.model.transactions.dto.RequestTransactionDto;
 import com.example.demo.model.transactions.dto.TransactionDto;
@@ -9,6 +11,7 @@ import com.example.demo.model.transactions.enums.TransactionTypeEnum;
 import com.example.demo.model.user.Merchant;
 import com.example.demo.repository.MerchantRepository;
 import com.example.demo.repository.TransactionRepository;
+import com.example.demo.service.TransactionService;
 import com.example.demo.service.impl.TransactionServiceImpl;
 import com.example.demo.util.TransactionMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,21 +38,17 @@ import static org.mockito.Mockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class TransactionServiceImplTest {
 
-    @InjectMocks
-    private TransactionServiceImpl transactionService;
-
-    @Mock
+    private TransactionService transactionService;
     private TransactionMapper mapper;
-
-    @Mock
     private MerchantRepository merchantRepository;
-
-    @Mock
     private TransactionRepository transactionRepository;
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
+        mapper = mock(TransactionMapper.class);
+        merchantRepository = mock(MerchantRepository.class);
+        transactionRepository = mock(TransactionRepository.class);
+        transactionService = new TransactionServiceImpl(mapper, merchantRepository, transactionRepository);
     }
 
     @Test
@@ -64,20 +63,25 @@ public class TransactionServiceImplTest {
         dto.setReferenceUuid(referenceUuid);
         dto.setTransactionUUID(transactionUUID);
         dto.setAmount(refundAmount);
+        dto.setStatus(TransactionStatusEnum.REFUNDED);
 
-        Transaction originalTransaction = new Transaction();
+        RefundTransaction originalTransaction = new RefundTransaction();
         originalTransaction.setUuid(transactionUUID);
         originalTransaction.setAmount(originalAmount);
 
         Merchant merchant = new Merchant();
         merchant.setTotalTransactionSum(originalAmount);
 
+        TransactionDto actual = new TransactionDto();
+        actual.setStatus(TransactionStatusEnum.REFUNDED);
+
         // Mocking repository methods
         when(merchantRepository.findByReferenceUuid(referenceUuid)).thenReturn(Optional.of(merchant));
         when(transactionRepository.findByUuid(transactionUUID)).thenReturn(originalTransaction);
+        when(mapper.convertEntityToDto(any(Transaction.class))).thenReturn(actual);
 
         // Test the service method
-        TransactionDto transactionDto = transactionService.refundTransaction(dto);
+        TransactionDto transactionDto = transactionService.manipulateTransaction(dto);
 
         // Verify the result
         assertEquals(TransactionStatusEnum.REFUNDED, transactionDto.getStatus());
@@ -100,17 +104,21 @@ public class TransactionServiceImplTest {
         dto.setReferenceUuid(referenceUuid);
         dto.setTransactionUUID(transactionUUID);
         dto.setAmount(refundAmount);
+        dto.setStatus(TransactionStatusEnum.REFUNDED);
 
-        Transaction originalTransaction = new Transaction();
+        RefundTransaction originalTransaction = new RefundTransaction();
         originalTransaction.setUuid(transactionUUID);
         originalTransaction.setAmount(originalAmount);
 
+        Merchant merchant = new Merchant();
+        merchant.setReferenceUuid(referenceUuid);
+
         // Mocking repository methods
-        when(merchantRepository.findByReferenceUuid(referenceUuid)).thenReturn(Optional.empty());
+        when(merchantRepository.findByReferenceUuid(anyString())).thenReturn(Optional.of(merchant));
         when(transactionRepository.findByUuid(transactionUUID)).thenReturn(originalTransaction);
 
         // Test the service method
-        TransactionDto transactionDto = transactionService.refundTransaction(dto);
+        TransactionDto transactionDto = transactionService.manipulateTransaction(dto);
 
         // Verify the result
         assertEquals(TransactionStatusEnum.ERROR, transactionDto.getStatus());
@@ -132,13 +140,14 @@ public class TransactionServiceImplTest {
         dto.setReferenceUuid(referenceUuid);
         dto.setTransactionUUID(transactionUUID);
         dto.setAmount(refundAmount);
+        dto.setStatus(TransactionStatusEnum.REFUNDED);
 
         // Mocking repository methods
-        when(merchantRepository.findByReferenceUuid(referenceUuid)).thenReturn(Optional.empty());
+        when(merchantRepository.findByReferenceUuid(referenceUuid)).thenReturn(Optional.of(new Merchant()));
         when(transactionRepository.findByUuid(transactionUUID)).thenReturn(null);
 
         // Test the service method
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> transactionService.refundTransaction(dto));
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> transactionService.manipulateTransaction(dto));
 
         // Verify the exception
         assertEquals("Transaction not found", exception.getMessage());
@@ -167,13 +176,18 @@ public class TransactionServiceImplTest {
 
         Transaction transaction = new Transaction();
         transaction.setUuid(transactionUuid);
+        TransactionDto dto = new TransactionDto();
+        dto.setStatus(TransactionStatusEnum.APPROVED);
+        dto.setUuid(transactionUuid);
 
         // Mocking repository methods
+        when(mapper.convertDtoToEntity(any(RequestTransactionDto.class))).thenReturn(transaction);
+        when(mapper.convertEntityToDto(any(Transaction.class))).thenReturn(dto);
         when(merchantRepository.findByReferenceUuid(referenceUuid)).thenReturn(Optional.of(merchant));
         when(transactionRepository.save(any(Transaction.class))).thenReturn(transaction);
 
         // Test the service method
-        TransactionDto transactionDto = transactionService.createTransaction(requestDto);
+        TransactionDto transactionDto = transactionService.manipulateTransaction(requestDto);
 
         // Verify the result
         assertEquals(TransactionStatusEnum.APPROVED, transactionDto.getStatus());
@@ -202,7 +216,7 @@ public class TransactionServiceImplTest {
         when(merchantRepository.findByReferenceUuid(referenceUuid)).thenReturn(Optional.of(merchant));
 
         // Test the service method
-        TransactionDto transactionDto = transactionService.createTransaction(requestDto);
+        TransactionDto transactionDto = transactionService.manipulateTransaction(requestDto);
 
         // Verify the result
         assertEquals(TransactionStatusEnum.ERROR, transactionDto.getStatus());
@@ -224,39 +238,31 @@ public class TransactionServiceImplTest {
         dto.setReferenceUuid(referenceUuid);
         dto.setTransactionUUID(transactionUUID);
         dto.setParentUUID(parentUUID);
+        dto.setStatus(TransactionStatusEnum.REVERSE);
 
-        Transaction originalTransaction = new Transaction();
+        ReversalTransaction originalTransaction = new ReversalTransaction();
         originalTransaction.setUuid(transactionUUID);
-        originalTransaction.setAmount(originalAmount);
 
-        Transaction parentTransaction = new Transaction();
-        parentTransaction.setUuid(parentUUID);
-        parentTransaction.setAmount(originalAmount);
-        parentTransaction.setStatus(TransactionStatusEnum.APPROVED);
-
-        Merchant merchant = new Merchant();
-        merchant.setTotalTransactionSum(originalAmount);
+        TransactionDto transactionData = new TransactionDto();
+        transactionData.setStatus(TransactionStatusEnum.REVERSE);
+        transactionData.setTransactionStatus(TransactionTypeEnum.REVERSAL);
 
         // Mocking repository methods
-        when(merchantRepository.findByReferenceUuid(referenceUuid)).thenReturn(Optional.of(merchant));
+        when(mapper.convertEntityToDto(any(Transaction.class))).thenReturn(transactionData);
         when(transactionRepository.findByUuid(transactionUUID)).thenReturn(originalTransaction);
-        when(transactionRepository.findByUuid(parentUUID)).thenReturn(parentTransaction);
 
         // Test the service method
-        TransactionDto transactionDto = transactionService.reverseTransaction(dto);
+        TransactionDto transactionDto = transactionService.manipulateTransaction(dto);
 
         // Verify the result
         assertEquals(TransactionStatusEnum.REVERSE, transactionDto.getStatus());
-        assertEquals(TransactionTypeEnum.REVERSAL, parentTransaction.getTransactionStatus());
-        assertEquals(originalAmount, merchant.getTotalTransactionSum());
+        assertEquals(TransactionTypeEnum.REVERSAL, transactionDto.getTransactionStatus());
 
-        verify(transactionRepository, times(1)).save(parentTransaction);
         verify(transactionRepository, times(1)).save(originalTransaction);
-        verify(merchantRepository, times(1)).save(merchant);
     }
 
     @Test
-    public void testReverseTransaction_ParentTransactionNotFound() {
+    public void testReverseTransaction_TransactionNotFound() {
         // Mock data
         String referenceUuid = "merchant-reference-uuid";
         String transactionUUID = "transaction-uuid";
@@ -266,17 +272,14 @@ public class TransactionServiceImplTest {
         dto.setReferenceUuid(referenceUuid);
         dto.setTransactionUUID(transactionUUID);
         dto.setParentUUID(parentUUID);
-
-        Transaction originalTransaction = new Transaction();
-        originalTransaction.setUuid(transactionUUID);
+        dto.setStatus(TransactionStatusEnum.REVERSE);
 
         // Mocking repository methods
         when(merchantRepository.findByReferenceUuid(referenceUuid)).thenReturn(Optional.empty());
-        when(transactionRepository.findByUuid(transactionUUID)).thenReturn(originalTransaction);
-        when(transactionRepository.findByUuid(parentUUID)).thenReturn(null); // Parent transaction not found
+        when(transactionRepository.findByUuid(transactionUUID)).thenReturn(null);
 
         // Test the service method
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> transactionService.reverseTransaction(dto));
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> transactionService.manipulateTransaction(dto));
 
         // Verify the exception
         assertEquals("Transaction not found", exception.getMessage());
@@ -293,18 +296,19 @@ public class TransactionServiceImplTest {
 
         Transaction transaction1 = new Transaction();
         transaction1.setUuid("transaction-uuid-1");
-        transaction1.setAmount(BigDecimal.valueOf(100));
 
         Transaction transaction2 = new Transaction();
         transaction2.setUuid("transaction-uuid-2");
-        transaction2.setAmount(BigDecimal.valueOf(150));
 
         List<Transaction> transactions = new ArrayList<>();
         transactions.add(transaction1);
         transactions.add(transaction2);
 
+        List<TransactionDto> dtos = List.of(new TransactionDto(), new TransactionDto());
+
         // Mocking repository methods
         when(transactionRepository.findAllByReferenceUuid(referenceUuid)).thenReturn(transactions);
+        when(mapper.convertEntitiesToDtos(transactions)).thenReturn(dtos);
 
         // Test the service method
         List<TransactionDto> transactionDtos = transactionService.getAllByMerchant(referenceUuid);
@@ -321,6 +325,7 @@ public class TransactionServiceImplTest {
 
         // Mocking repository methods
         when(transactionRepository.findAllByReferenceUuid(referenceUuid)).thenReturn(new ArrayList<>());
+        when(mapper.convertEntitiesToDtos(List.of())).thenReturn(List.of());
 
         // Test the service method
         List<TransactionDto> transactionDtos = transactionService.getAllByMerchant(referenceUuid);

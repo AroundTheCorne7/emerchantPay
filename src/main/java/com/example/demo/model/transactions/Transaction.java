@@ -10,14 +10,16 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 
 @Entity
 @Table(name = "TRANSACTION")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @NoArgsConstructor
 @Data
-public class Transaction {
+public class Transaction implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,10 +27,6 @@ public class Transaction {
     @NotBlank
     @Column(name = "uuid", nullable = false)
     private String uuid;
-    @Min(1)
-    @Max(Integer.MAX_VALUE)
-    @Column(name = "amount", nullable = false)
-    private BigDecimal amount;
     @Column(name = "status", nullable = false)
     private TransactionStatusEnum status;
     @Email

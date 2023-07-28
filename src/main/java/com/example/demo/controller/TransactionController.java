@@ -6,6 +6,8 @@ import com.example.demo.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,17 +25,8 @@ public class TransactionController {
 
 
     @PostMapping
-    public ResponseEntity<TransactionDto> createTransaction(@RequestBody RequestTransactionDto dto) {
-        return new ResponseEntity<>(service.createTransaction(dto), HttpStatus.OK);
+    public ResponseEntity<TransactionDto> createTransaction(@AuthenticationPrincipal UserDetails userDetails, @RequestBody RequestTransactionDto dto) {
+        return new ResponseEntity<>(service.manipulateTransaction(dto), HttpStatus.OK);
     }
 
-    @PutMapping("/refund")
-    public ResponseEntity<TransactionDto> refundTransaction(@RequestBody RequestTransactionDto dto) {
-        return new ResponseEntity<>(service.refundTransaction(dto), HttpStatus.OK);
-    }
-
-    @PutMapping("/reverse")
-    public ResponseEntity<TransactionDto> reverseTransaction(@RequestBody RequestTransactionDto dto) {
-        return new ResponseEntity<>(service.reverseTransaction(dto), HttpStatus.OK);
-    }
 }

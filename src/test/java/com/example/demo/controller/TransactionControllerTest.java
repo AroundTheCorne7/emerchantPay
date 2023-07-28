@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.transactions.dto.RequestTransactionDto;
 import com.example.demo.model.transactions.dto.TransactionDto;
+import com.example.demo.model.transactions.enums.TransactionStatusEnum;
 import com.example.demo.service.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,10 +43,10 @@ public class TransactionControllerTest {
         // Arrange
         RequestTransactionDto requestDto = new RequestTransactionDto();
         TransactionDto mockTransactionDto = new TransactionDto();
-        when(transactionService.createTransaction(requestDto)).thenReturn(mockTransactionDto);
+        when(transactionService.manipulateTransaction(requestDto)).thenReturn(mockTransactionDto);
 
         // Act
-        ResponseEntity<TransactionDto> responseEntity = transactionController.createTransaction(requestDto);
+        ResponseEntity<TransactionDto> responseEntity = transactionController.createTransaction(null, requestDto);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -56,11 +57,12 @@ public class TransactionControllerTest {
     public void testRefundTransaction() {
         // Arrange
         RequestTransactionDto requestDto = new RequestTransactionDto();
+        requestDto.setStatus(TransactionStatusEnum.REFUNDED);
         TransactionDto mockTransactionDto = new TransactionDto();
-        when(transactionService.refundTransaction(requestDto)).thenReturn(mockTransactionDto);
+        when(transactionService.manipulateTransaction(requestDto)).thenReturn(mockTransactionDto);
 
         // Act
-        ResponseEntity<TransactionDto> responseEntity = transactionController.refundTransaction(requestDto);
+        ResponseEntity<TransactionDto> responseEntity = transactionController.createTransaction(null, requestDto);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -72,10 +74,10 @@ public class TransactionControllerTest {
         // Arrange
         RequestTransactionDto requestDto = new RequestTransactionDto();
         TransactionDto mockTransactionDto = new TransactionDto();
-        when(transactionService.reverseTransaction(requestDto)).thenReturn(mockTransactionDto);
+        when(transactionService.manipulateTransaction(requestDto)).thenReturn(mockTransactionDto);
 
         // Act
-        ResponseEntity<TransactionDto> responseEntity = transactionController.reverseTransaction(requestDto);
+        ResponseEntity<TransactionDto> responseEntity = transactionController.createTransaction(null, requestDto);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
