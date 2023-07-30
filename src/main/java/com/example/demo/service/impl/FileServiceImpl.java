@@ -26,7 +26,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void createMerchantsFromCsv(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
+        if (file == null || file.isEmpty() || !FileUtil.hasCSVFormat(file)) {
             throw new IllegalArgumentException("File is empty or null.");
         }
 

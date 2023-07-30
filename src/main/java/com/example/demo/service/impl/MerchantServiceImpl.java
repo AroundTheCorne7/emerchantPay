@@ -2,9 +2,11 @@ package com.example.demo.service.impl;
 
 import com.example.demo.exception.NotFoundException;
 import com.example.demo.model.user.Merchant;
+import com.example.demo.model.user.User;
 import com.example.demo.model.user.dto.MerchantDto;
 import com.example.demo.repository.MerchantRepository;
 import com.example.demo.repository.TransactionRepository;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.service.MerchantService;
 import com.example.demo.util.MerchantMapper;
 import com.example.demo.util.TransactionMapper;
@@ -22,15 +24,20 @@ public class MerchantServiceImpl implements MerchantService {
 
     private final MerchantMapper mapper;
 
+    private final UserRepository userRepository;
+
     @Autowired
-    public MerchantServiceImpl(MerchantMapper mapper, MerchantRepository merchantRepository) {
+    public MerchantServiceImpl(MerchantMapper mapper, MerchantRepository merchantRepository, UserRepository userRepository) {
         this.mapper = mapper;
         this.repository = merchantRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
-    public List<MerchantDto> findAll() {
-        List<Merchant> merchants = repository.findAllByIsActiveTrue();
+    public List<MerchantDto> findAll(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User with that id doesnt exist: " + userId));
+        String merchantUuid = user.getMerchantUuid();
+        List<Merchant> merchants = repository.findByReferenceUuidAndIsActiveTrue(merchantUuid);
         return mapper.convertEntitiesToDtos(merchants);
     }
 

@@ -11,7 +11,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     void deleteByDateCreatedBefore(LocalTime expiryDate);
 
-    Transaction findByUuid(String uuid);
+//    Transaction findByUuid(String uuid);
 
     List<Transaction> findAllByReferenceUuid(String referenceUuid);
 }

@@ -11,4 +11,6 @@ public interface MerchantRepository extends JpaRepository<Merchant, Long> {
     Optional<Merchant> findByReferenceUuid(String uuid);
 
     List<Merchant> findAllByIsActiveTrue();
+
+    List<Merchant> findByReferenceUuidAndIsActiveTrue(String referenceUuid);
 }

@@ -24,25 +24,24 @@ import static org.mockito.Mockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class MerchantControllerTest {
 
-    @Mock
     private MerchantService merchantService;
 
-    @InjectMocks
     private MerchantController merchantController;
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
+        merchantService = mock(MerchantService.class);
+        merchantController = new MerchantController(merchantService);
     }
 
     @Test
     public void testFindAll() {
         // Arrange
         List<MerchantDto> mockMerchantList = Collections.singletonList(new MerchantDto());
-        when(merchantService.findAll()).thenReturn(mockMerchantList);
+        when(merchantService.findAll(anyLong())).thenReturn(mockMerchantList);
 
         // Act
-        ResponseEntity<List<MerchantDto>> responseEntity = merchantController.findAll();
+        ResponseEntity<List<MerchantDto>> responseEntity = merchantController.findAll(anyLong());
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());

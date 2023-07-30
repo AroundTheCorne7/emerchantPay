@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.user.dto.MerchantDto;
+import com.example.demo.model.user.dto.UserDto;
 import com.example.demo.service.MerchantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,9 +22,9 @@ public class MerchantController {
         this.service = service;
     }
 
-    @GetMapping()
-    public ResponseEntity<List<MerchantDto>> findAll() {
-        return new ResponseEntity<>(service.findAll(), HttpStatus.OK);
+    @GetMapping("/{userId}")
+    public ResponseEntity<List<MerchantDto>> findAll(@PathVariable Long userId) {
+        return new ResponseEntity<>(service.findAll(userId), HttpStatus.OK);
     }
 
     @GetMapping("/{uuid}")

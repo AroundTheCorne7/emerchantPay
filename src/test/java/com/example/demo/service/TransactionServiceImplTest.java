@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.service;
 
 import com.example.demo.exception.NotFoundException;
 import com.example.demo.model.transactions.RefundTransaction;
@@ -10,6 +10,8 @@ import com.example.demo.model.transactions.enums.TransactionStatusEnum;
 import com.example.demo.model.transactions.enums.TransactionTypeEnum;
 import com.example.demo.model.user.Merchant;
 import com.example.demo.repository.MerchantRepository;
+import com.example.demo.repository.RefundTransactionRepository;
+import com.example.demo.repository.ReversalTransactionRepository;
 import com.example.demo.repository.TransactionRepository;
 import com.example.demo.service.TransactionService;
 import com.example.demo.service.impl.TransactionServiceImpl;
@@ -42,13 +44,17 @@ public class TransactionServiceImplTest {
     private TransactionMapper mapper;
     private MerchantRepository merchantRepository;
     private TransactionRepository transactionRepository;
+    private ReversalTransactionRepository reversalTransactionRepository;
+    private RefundTransactionRepository refundTransactionRepository;
 
     @BeforeEach
     public void setUp() {
         mapper = mock(TransactionMapper.class);
         merchantRepository = mock(MerchantRepository.class);
         transactionRepository = mock(TransactionRepository.class);
-        transactionService = new TransactionServiceImpl(mapper, merchantRepository, transactionRepository);
+        reversalTransactionRepository = mock(ReversalTransactionRepository.class);
+        refundTransactionRepository = mock(RefundTransactionRepository.class);
+        transactionService = new TransactionServiceImpl(mapper, merchantRepository, transactionRepository, reversalTransactionRepository, refundTransactionRepository);
     }
 
     @Test
@@ -77,7 +83,7 @@ public class TransactionServiceImplTest {
 
         // Mocking repository methods
         when(merchantRepository.findByReferenceUuid(referenceUuid)).thenReturn(Optional.of(merchant));
-        when(transactionRepository.findByUuid(transactionUUID)).thenReturn(originalTransaction);
+        when(refundTransactionRepository.findByUuid(transactionUUID)).thenReturn(originalTransaction);
         when(mapper.convertEntityToDto(any(Transaction.class))).thenReturn(actual);
 
         // Test the service method
@@ -115,7 +121,7 @@ public class TransactionServiceImplTest {
 
         // Mocking repository methods
         when(merchantRepository.findByReferenceUuid(anyString())).thenReturn(Optional.of(merchant));
-        when(transactionRepository.findByUuid(transactionUUID)).thenReturn(originalTransaction);
+        when(refundTransactionRepository.findByUuid(transactionUUID)).thenReturn(originalTransaction);
 
         // Test the service method
         TransactionDto transactionDto = transactionService.manipulateTransaction(dto);
@@ -144,7 +150,7 @@ public class TransactionServiceImplTest {
 
         // Mocking repository methods
         when(merchantRepository.findByReferenceUuid(referenceUuid)).thenReturn(Optional.of(new Merchant()));
-        when(transactionRepository.findByUuid(transactionUUID)).thenReturn(null);
+        when(refundTransactionRepository.findByUuid(transactionUUID)).thenReturn(null);
 
         // Test the service method
         NotFoundException exception = assertThrows(NotFoundException.class, () -> transactionService.manipulateTransaction(dto));
@@ -249,7 +255,7 @@ public class TransactionServiceImplTest {
 
         // Mocking repository methods
         when(mapper.convertEntityToDto(any(Transaction.class))).thenReturn(transactionData);
-        when(transactionRepository.findByUuid(transactionUUID)).thenReturn(originalTransaction);
+        when(reversalTransactionRepository.findByUuid(transactionUUID)).thenReturn(originalTransaction);
 
         // Test the service method
         TransactionDto transactionDto = transactionService.manipulateTransaction(dto);
@@ -276,7 +282,7 @@ public class TransactionServiceImplTest {
 
         // Mocking repository methods
         when(merchantRepository.findByReferenceUuid(referenceUuid)).thenReturn(Optional.empty());
-        when(transactionRepository.findByUuid(transactionUUID)).thenReturn(null);
+        when(reversalTransactionRepository.findByUuid(transactionUUID)).thenReturn(null);
 
         // Test the service method
         NotFoundException exception = assertThrows(NotFoundException.class, () -> transactionService.manipulateTransaction(dto));

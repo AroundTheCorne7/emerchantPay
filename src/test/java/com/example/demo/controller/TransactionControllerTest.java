@@ -20,21 +20,21 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class TransactionControllerTest {
 
-    @Mock
     private TransactionService transactionService;
 
-    @InjectMocks
     private TransactionController transactionController;
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
+        transactionService = mock(TransactionService.class);
+        transactionController = new TransactionController(transactionService);
     }
 
 

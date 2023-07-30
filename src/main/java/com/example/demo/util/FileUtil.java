@@ -1,5 +1,6 @@
 package com.example.demo.util;
 
+import com.example.demo.exception.FileProcessingException;
 import com.example.demo.model.user.Admin;
 import com.example.demo.model.user.Merchant;
 import org.apache.commons.csv.CSVFormat;
@@ -20,8 +21,6 @@ public class FileUtil {
 
     public static String TYPE = "text/csv";
 
-    static String[] HEADERS = {"name", "description", "email"};
-
     public static boolean hasCSVFormat(MultipartFile file) {
 
         return TYPE.equals(file.getContentType());
@@ -35,6 +34,10 @@ public class FileUtil {
             List<Merchant> merchants = new ArrayList<>();
 
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
+
+            if(!csvRecords.iterator().hasNext()) {
+                throw new FileProcessingException("File is not a correct csv");
+            }
 
             for (CSVRecord csvRecord : csvRecords) {
                 String referenceId = UUID.randomUUID().toString();
