@@ -5,6 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.security.core.GrantedAuthority;
+
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "USER")
@@ -13,8 +17,8 @@ import lombok.Data;
 @Data
 public class User {
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @NotBlank
     @Column(name = "username", nullable = false)
@@ -25,6 +29,9 @@ public class User {
     @NotBlank
     @Column(name = "merchantUuid", nullable = false)
     private String merchantUuid;
+    @Column(name = "roles")
+    @ManyToMany
+    private List<UserRole> roles;
 
     public User() {
 

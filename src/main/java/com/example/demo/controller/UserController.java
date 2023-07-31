@@ -8,6 +8,7 @@ import com.example.demo.util.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,5 +38,10 @@ public class UserController {
     public ResponseEntity<String> login(@RequestBody LoginRequestDto dto) {
         UserDetails user = userService.login(dto);
         return new ResponseEntity<>(jwtTokenUtil.generateToken(user), HttpStatus.OK);
+    }
+
+    @PostMapping("/token")
+    public ResponseEntity<String> refreshToken(@AuthenticationPrincipal UserDetails userDetails) {
+        return new ResponseEntity<>(jwtTokenUtil.generateToken(userDetails), HttpStatus.OK);
     }
 }
